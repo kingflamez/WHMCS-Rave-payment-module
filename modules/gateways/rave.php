@@ -11,6 +11,9 @@
  *
  * @copyright Copyright (c) Oluwole Adebiyi 2017
  */
+
+
+
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
@@ -18,7 +21,7 @@ if (!defined("WHMCS")) {
 function rave_MetaData()
 {
     return array(
-        'DisplayName' => 'Rave by Flutterwave Payment Gateway',
+        'DisplayName' => 'Rave by Flutterwave',
         'APIVersion' => '1.1', // Use API Version 1.1
         'DisableLocalCredtCardInput' => true,
         'TokenisedStorage' => false,
@@ -30,7 +33,7 @@ function rave_config()
     return array(
         'FriendlyName' => array(
             'Type' => 'System',
-            'Value' => 'Rave by Flutterwave Payment Gateway',
+            'Value' => 'Rave by Flutterwave',
         ),
 
         'cBname' => array(
@@ -49,20 +52,19 @@ function rave_config()
             'Description' => 'Enter company/business description here',
         ),
 
-        'whmcsLink' => array(
-            'FriendlyName' => 'WHMCS Link',
-            'Type' => 'text',
-            'Size' => '50',
-            'Default' => '',
-            'Description' => 'Enter whmcs website link here',
-        ),
-
         'whmcsLogo' => array(
             'FriendlyName' => 'Logo',
             'Type' => 'text',
-            'Size' => '50',
+            'Size' => '80',
             'Default' => '',
             'Description' => 'Enter the link to your logo, square size',
+        ),
+
+        'paymentMethod' => array(
+            'FriendlyName' => 'Payment Method',
+            'Type' => 'radio',
+            'Options' => 'card,account,both',
+            'Description' => 'Choose your payment method!',
         ),
 
         'PBFPubKey' => array(
@@ -94,25 +96,31 @@ function rave_config()
             'Type' => 'yesno',
             'Description' => 'Tick to enable test mode',
         ),
+        'gatewayLogs' => array(
+            'FriendlyName' => 'Gateway logs',
+            'Type' => 'yesno',
+            'Description' => 'Select to enable gateway logs',
+            'Default' => '0'
+        ),
     );
 }
 
 function rave_link($params)
 {
-
-    // Gateway Configuration Parameters
-    if ($params['testMode'] == 'on') {
-        $apiLink = "http://flw-pms-dev.eu-west-1.elasticbeanstalk.com/";
-    } else {
-        $apiLink = "https://api.ravepay.co/";
-    }
+    $stagingUrl = 'https://rave-api-v2.herokuapp.com';
+    $liveUrl = 'https://api.ravepay.co';
+    $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+ 
+    
     $PBFPubKey = $params['PBFPubKey'];
     $secretKey = $params['secretKey'];
     $payButtonText = $params['payButtonText'];
     $cBname = $params['cBname'];
     $cBdescription = $params['cBdescription'];
-    $whmcsLink = $params['whmcsLink'];
+    $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] .substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
     $whmcsLogo = $params['whmcsLogo'];
+    $paymentMethod = $params['paymentMethod'];
+
 
     // Invoice Parameters
     $invoiceId = $params['invoiceid'];
@@ -120,7 +128,6 @@ function rave_link($params)
     $amount = $params['amount'];
     $currencyCode = $params['currency'];
     $strippedAmount = $amount + 0;
-
 
 
     // Client Parameters
@@ -152,7 +159,6 @@ function rave_link($params)
 
     $postfields = array();
     $postfields['PBFPubKey'] = $PBFPubKey;
-    $postfields['txref'] = $invoiceId . '_' .time();
     $postfields['customer_email'] = $email;
     $postfields['customer_firstname'] = $firstname;
     $postfields['custom_logo'] = $whmcsLogo;
@@ -161,9 +167,12 @@ function rave_link($params)
     $postfields['custom_title'] = $cBname;
     $postfields['customer_phone'] = $phone;
     $postfields['country'] = $country;
-    $postfields['payment_method'] = "both";
+    $postfields['redirect_url'] = $whmcsLink . '/modules/gateways/callback/rave.php';
+    $postfields['txref'] = $invoiceId . '_' .time();
+    $postfields['payment_method'] = $paymentMethod;
     $postfields['amount'] = $strippedAmount;
     $postfields['currency'] = $currencyCode;
+    $postfields['hosted_payment'] = 1;
 
     ksort($postfields);
     $stringToHash ="";
@@ -171,51 +180,37 @@ function rave_link($params)
         $stringToHash .= $val;
     }
 
+
     $stringToHash .= $secretKey;
 
     $hashedValue = hash('sha256', $stringToHash);
 
-    $htmlOutput = '<form>
-      <button type="button" class="btn btn-primary" style="cursor:pointer;" value="'.$payButtonText.'" id="ravepaybutton">'.$payButtonText.'</button>
+    $env = "staging";
+
+    $baseUrl = $stagingUrl;
+
+    if ($params['testMode'] != 'on') {
+        $baseUrl = $liveUrl;
+    }
+
+    $meta = array();
+
+    array_push($meta, array('metaname' => 'invoiceID', 'metavalue' => $invoiceId));
+    array_push($meta, array('metaname' => 'amount', 'metavalue' => $amount));
+
+    $transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue), array('meta' => $meta));
+    $json = json_encode($transactionData);
+
+    $htmlOutput = "<form onsubmit='event.preventDefault(); pay();'>
+      <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='".$payButtonText."' id='ravepaybutton'>".$payButtonText."</button>
     </form>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script type="text/javascript" src="'.$apiLink.'flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
+    <script type='text/javascript' src='" . $baseUrl . "/flwv3-pug/getpaidx/api/flwpbf-inline.js'></script>
     <script>
-         document.addEventListener("DOMContentLoaded", function(event) {
-      document.getElementById("ravepaybutton").addEventListener("click", function(e) {
-
-         var flw_ref = "", chargeResponse = "", trxref = "rave-'.$invoiceId.'", PBFKey = "'.$PBFPubKey.'";
-        getpaidSetup({';
-          foreach ($postfields as $key => $val) {
-            if ($key == "amount") {
-                $htmlOutput .= $key.": ".$val.",";
-            }
-            else{
-                $htmlOutput .= $key.': "'.$val.'",';
-            }
-          }
-          $htmlOutput .='integrity_hash: "'.$hashedValue.'",
-          onclose: function() {
-          },
-          callback: function(response) {
-            flw_ref = response.tx.flwRef; 
-            if ( response.tx.chargeResponse == "00" || response.tx.chargeResponse == "0" ) {
-              window.location = "'.$whmcsLink.'modules/gateways/callback/rave.php?inv='.$invoiceId.'&a='.$strippedAmount.'&txre='.$txref.'&flw_ref="+flw_ref; 
-            } 
-            else {
-              window.location = "'.$whmcsLink.'modules/gateways/callback/rave.php?inv='.$invoiceId.'&a='.$strippedAmount.'&txre='.$txref.'&flw_ref="+flw_ref; 
-            }
-          }
-          });
-        });
-      });
-    </script>';
-    // $htmlOutput = '
-    //                 <a class="flwpug_getpaid" data-PBFPubKey="'.$PBFPubKey.'" data-txref="rave-checkout-'.$invoiceId.'" data-amount="'.$amount.'" data-customer_email="'.$email.'" data-currency = "NGN" data-pay_button_text = "'.$payButtonText.'" data-country="NG" data-custom_title = "'.$cBname.'" data-custom_description = "'.$cBdescription.'" data-redirect_url = "'.$whmcsLink.'modules/gateways/callback/rave.php" data-custom_logo = "'.$whmcsLogo.'" data-payment_method = "both" data-integrity_hash="" data-exclude_banks=""></a>   
-
-    //             <script type="text/javascript" src="http://flw-pms-dev.eu-west-1.elasticbeanstalk.com/flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
-    // ';
+    function pay() {
+    var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
+    getpaidSetup(data);}
+    </script>
+    ";
 
     return $htmlOutput;
 }
