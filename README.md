@@ -25,20 +25,14 @@ Rave is available in:
 
 2. Copy [rave.php](modules/gateways/callback/rave.php?raw=true) in [modules/gateways/callback](modules/gateways/callback) to the `/modules/gateways/callback` folder of your WHMCS installation.
 
-3. Go to your WHMCS admin page, and click on setup
-![Rave Installation Screenshot](https://image.prntscr.com/image/zcDRed9lQxOGMkC6nuBu5Q.png)
+3. Go to your WHMCS admin page, and click on `Setup > Payments > Payment Gateways`
+![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/admin.jpg)
 
-4. Payments > Payment Gateways
-![Rave Installation Screenshot](https://image.prntscr.com/image/bc9RaoBeT1eteh3TWkAuIQ.png)
+4. Click on all payment gateways and click on Rave Payment to activate
+![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/rave.jpg)
 
-5 Click on all payment gateways
-![Rave Installation Screenshot](https://image.prntscr.com/image/G4tzCx10QCGmCMMt1_38GQ.png)
-
-6 Click on Rave Payment to activate
-![Rave Installation Screenshot](https://image.prntscr.com/image/5_G1AE_XRgyAzyZQp1eUEw.png)
-
-7 Enter your details
-![Rave Installation Screenshot](https://image.prntscr.com/image/ZEn2QcSLRByuFinzF94pxg.png)
+5. Enter your details and save
+![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/settings.jpg)
 
 * __Company/Business Name__ - (Compulsory) customize the title of the Pay Modal.
 * __Company/Business Description__ - (Compulsory) customize the description on the Pay Modal.
