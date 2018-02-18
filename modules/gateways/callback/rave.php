@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Rave Callback File
  *
@@ -54,8 +55,8 @@ checkCbTransID($transactionId);
  * Gets the amount from the server
  */
 $cashquery = Capsule::table('tblinvoices')
-   ->where('id', '=', $invoiceId)->first();
-    $cash = $cashquery->subtotal;
+    ->where('id', '=', $invoiceId)->first();
+$cash = $cashquery->subtotal;
 
 /**
  * Gets the currency ID and Code from the server
@@ -143,25 +144,26 @@ function requery()
  * @param string $referenceNumber This should be the reference number of the transaction you want to requery
  * @return object
  * */
-function verifyTransaction($data) {
+function verifyTransaction($data)
+{
     $currency = $GLOBALS['invoice_currency_code'];
     $amount = $GLOBALS['money'];
     $invoiceId = $GLOBALS['invoiceId'];
-    $invoice_url = $GLOBALS['whmcsLink'] . '/../../../viewinvoice.php?id='.rawurlencode($invoiceId);
-    
+    $invoice_url = $GLOBALS['whmcsLink'] . '/../../../viewinvoice.php?id=' . rawurlencode($invoiceId);
+
     if (($data->chargecode == "00" || $data->chargecode == "0") && ($data->amount == $amount) && ($data->currency == $currency)) {
         addInvoicePayment(
             $invoiceId,
-            $data->txref, 
-            $amount, 
-            null, 
+            $data->txref,
+            $amount,
+            null,
             $gatewayModuleName
         );
             // Add transaction to Gateway logs
         if ($gatewayParams['gatewayLogs'] == 'on') {
             $log = "Transaction ref: " . $data->txref
                 . "\r\nInvoice ID: " . $invoiceId
-                . "\r\nStatus: ". $data->status
+                . "\r\nStatus: " . $data->status
                 . "\r\nCharge Code: " . $data->chargecode
                 . "\r\nCurrency: " . $data->currency
                 . "\r\namount: " . $amount
@@ -193,7 +195,52 @@ function failed($data)
             . "\r\nResponse: " . $data;
         logTransaction($gatewayModuleName, $log, "Failed");
     }
+    $error = ($_GET['cancelled']==true)?"You cancelled the transaction":"Transaction Failed";
 
-    die($data.' ; '.'Transaction Failed');
+    echo '<!DOCTYPE html>
+    <html lang="">
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+            <title>Failed Transaction</title>
+    
+            <!-- Bootstrap CSS -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    
+            <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+            <!-- WARNING: Respond.js doesn\'t work if you view the page via file:// -->
+            <!--[if lt IE 9]>
+                <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+                <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+            <![endif]-->
+            <style>
+            html, body{
+                font-family: \'Raleway\', sans-serif;
+            }
+            h1{
+                font-weight: bold;
+                color: #f00;
+            }
+            </style>
+        </head>
+        <body class="text-center" style="padding-top=20%;">
+            <h1>Failed Transaction</h1>
+            <div>Response Code - ' . $data->chargecode . ';  
+            '.$error.'
+            </div>
+            </br>
+            <a class="btn btn-primary" href="' . $invoice_url . '">Back to Invoice</a>
+    
+            <!-- jQuery -->
+            <script src="//code.jquery.com/jquery.js"></script>
+            <!-- Bootstrap JavaScript -->
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+            <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+             <script src="Hello World"></script>
+        </body>
+    </html>';
+    die();
     exit;
 }
