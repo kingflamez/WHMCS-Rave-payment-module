@@ -11,7 +11,7 @@ This is a payment Module for WHMCS that allows you to accept payments using Flut
 
 Accept Credit card, Debit card and Bank account payment directly on WHMCS with the Rave payment gateway.
 
-Signup for an account [here](https://ravepay.co)
+Signup for an account [here](https://rave.flutterwave.com)
 
 Rave is available in:
 
@@ -44,10 +44,14 @@ Rave is available in:
 * __Company/Business Description__ - (Compulsory) customize the description on the Pay Modal.
 * __WHMCS Link__ - (Compulsory) The URL of WHMCS.
 * __Logo__ - (Optional) customize the logo on the Pay Modal. Enter a full url (with 'http'). Default is Rave logo.
+* __Payment Method__ - (Compulsory) Card Only, Account only or both. 
 * __Public Key__ - Enter your public key which can be retrieved from "Pay Buttons" page on your Rave account dashboard.
 * __Secret Key__ - Enter your public key which can be retrieved from "Pay Buttons" page on your Rave account dashboard.
 * __Pay Button Text__ - (Optional) The text to display on the button. Default: "PAY NOW".
 * __Test Mode__ - Tick to enable test mode.
+* __Gateway Logs__ - Tick to enable gateway logs.
 * Click __Save Changes__ to save your changes.
 
+## ToDo
+- Recurring Payments
 
