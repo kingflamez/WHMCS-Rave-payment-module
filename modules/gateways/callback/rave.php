@@ -117,17 +117,17 @@ function requery()
     curl_close($ch);
 
     $resp = json_decode($response, false);
-    
+
     if ($resp && $resp->status === "success") {
         if ($resp && $resp->data && $resp->data->status === "successful") {
             verifyTransaction($resp->data);
         } elseif ($resp && $resp->data && $resp->data->status === "failed") {
 
-            return failed($data);
+            return failed($resp->data);
         } else {
                 // I will requery again here. Just incase we have some devs that cannot setup a queue for requery. I don't like this.
-            if ($requeryCount > 4) {
-                return failed($data);
+            if ($GLOBALS['requeryCount'] > 4) {
+                return failed($resp->data);
             } else {
                 sleep(3);
                 return requery();
@@ -135,7 +135,7 @@ function requery()
         }
     } else {
         if ($GLOBALS['requeryCount'] > 4) {
-            return failed($data);
+            return failed($resp->data);
         } else {
             sleep(3);
             return requery();
@@ -231,9 +231,9 @@ function failed($data)
         </head>
         <body class="text-center" style="padding-top=20%;">
             <h1>Failed Transaction</h1>
-            <div>Response Code - ' . $data->chargecode . ';  
-            ' . $error . '
-            </div>
+            <p>Response Code - ' . $data->chargecode . '</p>
+            <p>Response Message - ' . $data->chargemessage . '</p>
+            <p>' . $error . '</p>
             </br>
             <a class="btn btn-primary" href="' . $invoice_url . '">Back to Invoice</a>
     
