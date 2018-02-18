@@ -58,7 +58,7 @@ checkCbTransID($transactionId);
  */
 $cashquery = Capsule::table('tblinvoices')
     ->where('id', '=', $invoiceId)->first();
-$cash = $cashquery->subtotal;
+$cash = $cashquery->total;
 
 /**
  * Gets the currency ID and Code from the server
@@ -90,7 +90,7 @@ function requery()
 {
     $txref = $_GET['txref'];
     $GLOBALS['requeryCount']++;
-    
+
 
     $data = array(
         'txref' => $txref,
@@ -161,7 +161,7 @@ function verifyTransaction($data)
             $data->txref,
             $amount,
             null,
-            $gatewayModuleName
+            $GLOBALS['gatewayModuleName']
         );
             // Add transaction to Gateway logs
         if ($gatewayParams['gatewayLogs'] == 'on') {
@@ -172,7 +172,7 @@ function verifyTransaction($data)
                 . "\r\nCurrency: " . $data->currency
                 . "\r\namount: " . $amount
                 . "\r\nResponse: " . $data;
-            logTransaction($gatewayModuleName, $log, "Successful");
+            logTransaction($GLOBALS['gatewayModuleName'], $log, "Successful");
         }
         header("Location: " . $invoice_url);
         exit;
