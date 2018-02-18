@@ -25,6 +25,8 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
+$secretKey = $gatewayParams['secretKey'];
+
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
 $invoiceId = explode('_', $_GET["txref"]);
@@ -33,11 +35,11 @@ $transactionId = $_GET["txref"];
 $paymentAmount = $_GET["a"];
 $success = false;
 
-if ($gatewayParams['testMode'] == 'on') {
-    $apiLink = "http://flw-pms-dev.eu-west-1.elasticbeanstalk.com/";
-} else {
+$apiLink = "http://flw-pms-dev.eu-west-1.elasticbeanstalk.com/";
+if ($gatewayParams['testMode'] != 'on') {
     $apiLink = "https://api.ravepay.co/";
 }
+
 $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
 $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
 
@@ -88,10 +90,11 @@ function requery()
 {
     $txref = $_GET['txref'];
     $GLOBALS['requeryCount']++;
+    
 
     $data = array(
         'txref' => $txref,
-        'SECKEY' => $gatewayParams['secretKey'],
+        'SECKEY' => $GLOBALS['secretKey'],
         'last_attempt' => '1'
         // 'only_successful' => '1'
     );
@@ -99,7 +102,7 @@ function requery()
     // make request to endpoint.
     $data_string = json_encode($data);
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $apiLink . 'flwv3-pug/getpaidx/api/xrequery');
+    curl_setopt($ch, CURLOPT_URL, $GLOBALS['apiLink'] . 'flwv3-pug/getpaidx/api/xrequery');
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -114,6 +117,7 @@ function requery()
     curl_close($ch);
 
     $resp = json_decode($response, false);
+    
     if ($resp && $resp->status === "success") {
         if ($resp && $resp->data && $resp->data->status === "successful") {
             verifyTransaction($resp->data);
@@ -195,7 +199,7 @@ function failed($data)
             . "\r\nResponse: " . $data;
         logTransaction($gatewayModuleName, $log, "Failed");
     }
-    $error = ($_GET['cancelled']==true)?"You cancelled the transaction":"Transaction Failed";
+    $error = ($_GET['cancelled'] == true) ? "You cancelled the transaction" : "Transaction Failed";
 
     echo '<!DOCTYPE html>
     <html lang="">
@@ -228,7 +232,7 @@ function failed($data)
         <body class="text-center" style="padding-top=20%;">
             <h1>Failed Transaction</h1>
             <div>Response Code - ' . $data->chargecode . ';  
-            '.$error.'
+            ' . $error . '
             </div>
             </br>
             <a class="btn btn-primary" href="' . $invoice_url . '">Back to Invoice</a>
