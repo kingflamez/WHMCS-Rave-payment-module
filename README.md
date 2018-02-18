@@ -34,6 +34,31 @@ Rave is available in:
 5. Enter your details and save
 ![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/settings.jpg)
 
+>Test Card
+
+```bash
+5438898014560229
+cvv 789
+Expiry Month 09
+Expiry Year 19
+Pin 3310
+otp 12345
+```
+
+>Test Bank Account
+
+```bash
+Access Bank
+Account number: 0690000004
+otp: 12345
+```
+
+```bash
+Providus Bank
+Account number: 5900102340, 5900002567
+otp: 12345
+```
+
 * __Company/Business Name__ - (Compulsory) customize the title of the Pay Modal.
 * __Company/Business Description__ - (Compulsory) customize the description on the Pay Modal.
 * __WHMCS Link__ - (Compulsory) The URL of WHMCS.
