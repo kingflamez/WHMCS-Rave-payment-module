@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Rave by Flutterwave Payment Gateway Module
  *
@@ -62,9 +63,25 @@ function rave_config()
 
         'paymentMethod' => array(
             'FriendlyName' => 'Payment Method',
-            'Type' => 'radio',
-            'Options' => 'card,account,both',
+            'Type' => 'dropdown',
+            'Options' => array(
+                'both' => 'All',
+                'card' => 'Card Only',
+                'account' => 'Account Only',
+                'ussd' => 'USSD Only'
+            ),
             'Description' => 'Choose your payment method!',
+        ),
+
+        'country' => array(
+            'FriendlyName' => 'Payment Method',
+            'Type' => 'dropdown',
+            'Options' => array(
+                'NG' => 'Nigeria',
+                'GH' => 'Ghana',
+                'KE' => 'Kenya'
+            ),
+            'Description' => 'Choose your country!',
         ),
 
         'PBFPubKey' => array(
@@ -110,16 +127,17 @@ function rave_link($params)
     $stagingUrl = 'https://rave-api-v2.herokuapp.com';
     $liveUrl = 'https://api.ravepay.co';
     $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
- 
-    
+
+
     $PBFPubKey = $params['PBFPubKey'];
     $secretKey = $params['secretKey'];
     $payButtonText = $params['payButtonText'];
     $cBname = $params['cBname'];
     $cBdescription = $params['cBdescription'];
-    $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] .substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
+    $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
     $whmcsLogo = $params['whmcsLogo'];
     $paymentMethod = $params['paymentMethod'];
+    $country = $params['country'];
 
 
     // Invoice Parameters
@@ -139,23 +157,9 @@ function rave_link($params)
     $city = $params['clientdetails']['city'];
     $state = $params['clientdetails']['state'];
     $postcode = $params['clientdetails']['postcode'];
-    $country = $params['clientdetails']['country'];
     $phone = $params['clientdetails']['phonenumber'];
 
-    $txref = $invoiceId . '_' .time();
-    
-    $country = 'NG';
-    switch($currencyCode) {
-    case 'KES':
-      $country = 'KE';
-      break;
-    case 'GHS':
-      $country = 'GH';
-      break;
-    default:
-      $country = 'NG';
-      break;
-    }
+    $txref = $invoiceId . '_' . time();
 
     $postfields = array();
     $postfields['PBFPubKey'] = $PBFPubKey;
@@ -168,14 +172,14 @@ function rave_link($params)
     $postfields['customer_phone'] = $phone;
     $postfields['country'] = $country;
     $postfields['redirect_url'] = $whmcsLink . '/modules/gateways/callback/rave.php';
-    $postfields['txref'] = $invoiceId . '_' .time();
+    $postfields['txref'] = $invoiceId . '_' . time();
     $postfields['payment_method'] = $paymentMethod;
     $postfields['amount'] = $strippedAmount;
     $postfields['currency'] = $currencyCode;
     $postfields['hosted_payment'] = 1;
 
     ksort($postfields);
-    $stringToHash ="";
+    $stringToHash = "";
     foreach ($postfields as $key => $val) {
         $stringToHash .= $val;
     }
@@ -202,7 +206,7 @@ function rave_link($params)
     $json = json_encode($transactionData);
 
     $htmlOutput = "<form onsubmit='event.preventDefault(); pay();'>
-      <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='".$payButtonText."' id='ravepaybutton'>".$payButtonText."</button>
+      <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='" . $payButtonText . "' id='ravepaybutton'>" . $payButtonText . "</button>
     </form>
     <script type='text/javascript' src='" . $baseUrl . "/flwv3-pug/getpaidx/api/flwpbf-inline.js'></script>
     <script>
