@@ -61,11 +61,11 @@ otp: 12345
 
 * __Company/Business Name__ - (Compulsory) customize the title of the Pay Modal.
 * __Company/Business Description__ - (Compulsory) customize the description on the Pay Modal.
-* __WHMCS Link__ - (Compulsory) The URL of WHMCS.
 * __Logo__ - (Optional) customize the logo on the Pay Modal. Enter a full url (with 'http'). Default is Rave logo.
-* __Payment Method__ - (Compulsory) Card Only, Account only or both. 
+* __Payment Method__ - (Compulsory) Card Only, Account only, USSD only or All. 
 * __Public Key__ - Enter your public key which can be retrieved from "Pay Buttons" page on your Rave account dashboard.
 * __Secret Key__ - Enter your public key which can be retrieved from "Pay Buttons" page on your Rave account dashboard.
+* __Payment Way__ - This specifies if you want a pop up modal of rave(inline) or it should redirect(hosted)
 * __Pay Button Text__ - (Optional) The text to display on the button. Default: "PAY NOW".
 * __Test Mode__ - Tick to enable test mode.
 * __Gateway Logs__ - Tick to enable gateway logs.

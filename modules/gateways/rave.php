@@ -74,7 +74,7 @@ function rave_config()
         ),
 
         'country' => array(
-            'FriendlyName' => 'Payment Method',
+            'FriendlyName' => 'Country',
             'Type' => 'dropdown',
             'Options' => array(
                 'NG' => 'Nigeria',
@@ -100,6 +100,16 @@ function rave_config()
             'Description' => 'Enter secret key here',
         ),
 
+        'paymentWay' => array(
+            'FriendlyName' => 'Payment Way',
+            'Type' => 'dropdown',
+            'Options' => array(
+                'redirection' => 'Redirection (Hosted)',
+                'modal' => 'Modal (Inline)'
+            ),
+            'Description' => 'Choose the way you want the rave form to show',
+        ),
+
         'payButtonText' => array(
             'FriendlyName' => 'Pay Button Text',
             'Type' => 'text',
@@ -113,6 +123,7 @@ function rave_config()
             'Type' => 'yesno',
             'Description' => 'Tick to enable test mode',
         ),
+
         'gatewayLogs' => array(
             'FriendlyName' => 'Gateway logs',
             'Type' => 'yesno',
@@ -171,12 +182,15 @@ function rave_link($params)
     $postfields['custom_title'] = $cBname;
     $postfields['customer_phone'] = $phone;
     $postfields['country'] = $country;
-    $postfields['redirect_url'] = $whmcsLink . '/modules/gateways/callback/rave.php';
     $postfields['txref'] = $invoiceId . '_' . time();
     $postfields['payment_method'] = $paymentMethod;
     $postfields['amount'] = $strippedAmount;
     $postfields['currency'] = $currencyCode;
-    $postfields['hosted_payment'] = 1;
+    if ($params['paymentWay'] == 'redirection') {
+        $postfields['redirect_url'] = $whmcsLink . '/modules/gateways/callback/rave.php';
+        $postfields['hosted_payment'] = 1;
+    }
+    
 
     ksort($postfields);
     $stringToHash = "";
@@ -197,24 +211,57 @@ function rave_link($params)
         $baseUrl = $liveUrl;
     }
 
-    $meta = array();
-
-    array_push($meta, array('metaname' => 'invoiceID', 'metavalue' => $invoiceId));
-    array_push($meta, array('metaname' => 'amount', 'metavalue' => $amount));
-
-    $transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue), array('meta' => $meta));
+    $transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue));
     $json = json_encode($transactionData);
 
-    $htmlOutput = "<form onsubmit='event.preventDefault(); pay();'>
-      <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='" . $payButtonText . "' id='ravepaybutton'>" . $payButtonText . "</button>
-    </form>
-    <script type='text/javascript' src='" . $baseUrl . "/flwv3-pug/getpaidx/api/flwpbf-inline.js'></script>
-    <script>
-    function pay() {
-    var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
-    getpaidSetup(data);}
-    </script>
-    ";
+    $datas = "";
+
+    foreach ($transactionData as $key => $value) {
+        $datas.= $key.": '". $value."',";
+    }
+
+    if ($params['paymentWay'] == 'redirection') {
+        $htmlOutput = "<form onsubmit='event.preventDefault(); pay();'>
+          <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='" . $payButtonText . "' id='ravepaybutton'>" . $payButtonText . "</button>
+        </form>
+        <script type='text/javascript' src='" . $baseUrl . "/flwv3-pug/getpaidx/api/flwpbf-inline.js'></script>
+        <script>
+        function pay() {
+        var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
+        getpaidSetup(data);}
+        </script>
+        ";
+    }
+
+    else{
+        $htmlOutput = "<form onsubmit='event.preventDefault(); pay();'>
+          <button type='submit' class='btn btn-primary' style='cursor:pointer;' value='" . $payButtonText . "' id='ravepaybutton'>" . $payButtonText . "</button>
+        </form>
+        <script type='text/javascript' src='" . $baseUrl . "/flwv3-pug/getpaidx/api/flwpbf-inline.js'></script>
+        <script>
+        function pay() {
+        var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
+        getpaidSetup({".
+            $datas
+        ."
+        onclose: function() {},
+          callback: function(response) {
+            var flw_ref = response.tx.flwRef; // collect flwRef returned and pass to a                  server page to complete status check.
+            console.log('This is the response returned after a charge', response);
+            if (
+              response.tx.chargeResponseCode == '00' ||
+              response.tx.chargeResponseCode == '0'
+            ) {
+              window.location = '".$whmcsLink ."/modules/gateways/callback/rave.php?txref=".$postfields['txref']."';
+            } else {
+              window.location = '".$whmcsLink ."/modules/gateways/callback/rave.php?txref=".$postfields['txref']."';
+            }
+          }
+
+    });}
+        </script>
+        ";
+    }
 
     return $htmlOutput;
 }
