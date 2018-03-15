@@ -243,8 +243,10 @@ function rave_link($params)
         var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
         getpaidSetup({".
             $datas
-        ."
-        onclose: function() {},
+        . "
+        onclose: function() {
+            window.location = '" . $whmcsLink . "/modules/gateways/callback/rave.php?txref=" . $postfields['txref'] . "&cancelled=true';
+        },
           callback: function(response) {
             var flw_ref = response.tx.flwRef; // collect flwRef returned and pass to a                  server page to complete status check.
             console.log('This is the response returned after a charge', response);
