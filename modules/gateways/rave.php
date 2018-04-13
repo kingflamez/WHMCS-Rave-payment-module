@@ -85,7 +85,7 @@ function rave_config()
         ),
 
         'PBFPubKey' => array(
-            'FriendlyName' => 'Public Key',
+            'FriendlyName' => 'Live Public Key',
             'Type' => 'text',
             'Size' => '50',
             'Default' => '',
@@ -93,7 +93,23 @@ function rave_config()
         ),
 
         'secretKey' => array(
-            'FriendlyName' => 'Secret Key',
+            'FriendlyName' => 'Live Secret Key',
+            'Type' => 'text',
+            'Size' => '50',
+            'Default' => '',
+            'Description' => 'Enter secret key here',
+        ),
+
+        'testPBFPubKey' => array(
+            'FriendlyName' => 'Test Public Key',
+            'Type' => 'text',
+            'Size' => '50',
+            'Default' => '',
+            'Description' => 'Enter public key here',
+        ),
+
+        'testSecretKey' => array(
+            'FriendlyName' => 'Test Secret Key',
             'Type' => 'text',
             'Size' => '50',
             'Default' => '',
@@ -104,7 +120,7 @@ function rave_config()
             'FriendlyName' => 'Payment Way',
             'Type' => 'dropdown',
             'Options' => array(
-                'redirection' => 'Redirection (Hosted)',
+                'redirection' => 'Redirection (Hosted) - Good for opera mini phones',
                 'modal' => 'Modal (Inline)'
             ),
             'Description' => 'Choose the way you want the rave form to show',
@@ -140,8 +156,15 @@ function rave_link($params)
     $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
 
 
-    $PBFPubKey = $params['PBFPubKey'];
-    $secretKey = $params['secretKey'];
+    $PBFPubKey = $params['testPBFPubKey'];
+    $secretKey = $params['testSecretKey'];
+
+    if ($params['testMode'] != 'on') {
+        $PBFPubKey = $params['PBFPubKey'];
+        $secretKey = $params['secretKey'];
+    }
+
+    
     $payButtonText = $params['payButtonText'];
     $cBname = $params['cBname'];
     $cBdescription = $params['cBdescription'];

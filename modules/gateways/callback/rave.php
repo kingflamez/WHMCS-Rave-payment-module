@@ -25,7 +25,12 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
-$secretKey = $gatewayParams['secretKey'];
+$secretKey = $gatewayParams['testSecretKey'];
+
+if ($gatewayParams['testMode'] != 'on') {
+    $secretKey = $gatewayParams['secretKey'];
+}
+
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
