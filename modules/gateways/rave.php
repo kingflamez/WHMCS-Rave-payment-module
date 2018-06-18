@@ -151,7 +151,7 @@ function rave_config()
 
 function rave_link($params)
 {
-    $stagingUrl = 'https://rave-api-v2.herokuapp.com';
+    $stagingUrl = 'https://ravesandboxapi.flutterwave.com';
     $liveUrl = 'https://api.ravepay.co';
     $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
 
@@ -252,6 +252,7 @@ function rave_link($params)
         function pay() {
         var data = JSON.parse('" . json_encode($transactionData = array_merge($postfields, array('integrity_hash' => $hashedValue))) . "');
         getpaidSetup(data);}
+        pay();
         </script>
         ";
     }
@@ -268,7 +269,7 @@ function rave_link($params)
             $datas
         . "
         onclose: function() {
-            window.location = '" . $whmcsLink . "/modules/gateways/callback/rave.php?txref=" . $postfields['txref'] . "&cancelled=true';
+          //  window.location = '" . $whmcsLink . "/modules/gateways/callback/rave.php?txref=" . $postfields['txref'] . "&cancelled=true';
         },
           callback: function(response) {
             var flw_ref = response.tx.flwRef; // collect flwRef returned and pass to a                  server page to complete status check.
@@ -278,12 +279,11 @@ function rave_link($params)
               response.tx.chargeResponseCode == '0'
             ) {
               window.location = '".$whmcsLink ."/modules/gateways/callback/rave.php?txref=".$postfields['txref']."';
-            } else {
-              window.location = '".$whmcsLink ."/modules/gateways/callback/rave.php?txref=".$postfields['txref']."';
             }
           }
 
     });}
+    pay();
         </script>
         ";
     }
