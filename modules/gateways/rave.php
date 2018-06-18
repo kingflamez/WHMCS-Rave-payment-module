@@ -79,7 +79,8 @@ function rave_config()
             'Options' => array(
                 'NG' => 'Nigeria',
                 'GH' => 'Ghana',
-                'KE' => 'Kenya'
+                'KE' => 'Kenya',
+                'ZA' => 'South Africa'
             ),
             'Description' => 'Choose your country!',
         ),

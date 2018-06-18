@@ -11,13 +11,16 @@ This is a payment Module for WHMCS that allows you to accept payments using Flut
 
 Accept Credit card, Debit card and Bank account payment directly on WHMCS with the Rave payment gateway.
 
-Signup for an account [here](https://rave.flutterwave.com)
+> Signup for a live account [here](https://rave.flutterwave.com/)
+
+> Signup for a test account [here](https://ravesandbox.flutterwave.com/)
 
 Rave is available in:
 
 * __Nigeria__
 * __Ghana__
 * __Kenya__
+* __South Africa__
 
 
 ## Install
