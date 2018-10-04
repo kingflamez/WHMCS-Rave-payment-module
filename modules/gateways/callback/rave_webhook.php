@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Rave Callback File
+ * Rave Webhook File
  *
  *
  * For more information, please refer to the online documentation.
  *
  * @author Oluwole Adebiyi <flamekeed@gmail.com>
  *
- * @copyright Copyright (c) Oluwole Adebiyi 2017
+ * @copyright Copyright (c) Oluwole Adebiyi 2018
  */
 // Require Database Capsule for query
 use WHMCS\Database\Capsule;
