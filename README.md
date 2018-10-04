@@ -28,13 +28,15 @@ Rave is available in:
 
 2. Copy [rave.php](modules/gateways/callback/rave.php?raw=true) in [modules/gateways/callback](modules/gateways/callback) to the `/modules/gateways/callback` folder of your WHMCS installation.
 
-3. Go to your WHMCS admin page, and click on `Setup > Payments > Payment Gateways`
+3. Copy [rave_webhook.php](modules/gateways/callback/rave_webhook.php?raw=true) in [modules/gateways/callback](modules/gateways/callback) to the `/modules/gateways/callback` folder of your WHMCS installation.
+
+4. Go to your WHMCS admin page, and click on `Setup > Payments > Payment Gateways`
 ![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/admin.jpg)
 
-4. Click on all payment gateways and click on Rave Payment to activate
+5. Click on all payment gateways and click on Rave Payment to activate
 ![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/rave.jpg)
 
-5. Enter your details and save
+6. Enter your details and save
 ![Rave Installation Screenshot](https://raw.githubusercontent.com/kingflamez/WHMCS-Rave-payment-module/master/img/settings.jpg)
 
 >Test Card
