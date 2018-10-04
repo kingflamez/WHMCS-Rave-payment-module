@@ -31,26 +31,44 @@ function rave_MetaData()
 
 function rave_config()
 {
+    $isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+
+    $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], "admin"));
+
+
+    $callbackUrl = $whmcsLink."modules/gateways/callback/rave_webhook.php";
+
     return array(
         'FriendlyName' => array(
             'Type' => 'System',
             'Value' => 'Rave by Flutterwave',
         ),
-
+        'webhook' => array(
+            'FriendlyName' => 'Webhook URL',
+            'Type' => 'yesno',
+            'Description' => 'Copy and paste this URL in your <a target="_blank" href="https://rave.flutterwave.com/dashboard/settings/webhooks">Webhooks URL </a> <code>'.$callbackUrl.'</code>',
+            'Default' => "yes",
+        ),
+        'webhookHash' => array(
+            'FriendlyName' => 'Webhook Secret Hash',
+            'Type' => 'text',
+            'Description' => 'Enter the secret hash in your <a target="_blank" href="https://rave.flutterwave.com/dashboard/settings/webhooks">dashboard here</a>',
+            'Default' => '',
+        ),
         'cBname' => array(
-            'FriendlyName' => 'Company/Business Name',
+            'FriendlyName' => 'Company Name',
             'Type' => 'text',
             'Size' => '50',
             'Default' => '',
-            'Description' => 'Enter company/business name here',
+            'Description' => 'Enter company name here',
         ),
 
         'cBdescription' => array(
-            'FriendlyName' => 'Company/Business Description',
+            'FriendlyName' => 'Company Description',
             'Type' => 'text',
             'Size' => '50',
             'Default' => '',
-            'Description' => 'Enter company/business description here',
+            'Description' => 'Enter company description here',
         ),
 
         'whmcsLogo' => array(
@@ -79,8 +97,7 @@ function rave_config()
             'Options' => array(
                 'NG' => 'Nigeria',
                 'GH' => 'Ghana',
-                'KE' => 'Kenya',
-                'ZA' => 'South Africa'
+                'KE' => 'Kenya'
             ),
             'Description' => 'Choose your country!',
         ),
@@ -284,7 +301,6 @@ function rave_link($params)
           }
 
     });}
-    pay();
         </script>
         ";
     }

@@ -25,12 +25,14 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
+$isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+$whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
+
 $secretKey = $gatewayParams['testSecretKey'];
 
 if ($gatewayParams['testMode'] != 'on') {
     $secretKey = $gatewayParams['secretKey'];
 }
-
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
@@ -40,13 +42,12 @@ $transactionId = $_GET["txref"];
 $paymentAmount = $_GET["a"];
 $success = false;
 
+
 $apiLink = "https://ravesandboxapi.flutterwave.com/";
 if ($gatewayParams['testMode'] != 'on') {
     $apiLink = "https://api.ravepay.co/";
 }
 
-$isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
-$whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
 
 /**
  * Validate Callback Invoice ID.
@@ -72,6 +73,7 @@ $result = select_query("tblclients", "tblinvoices.invoicenum,tblclients.currency
 $data = mysql_fetch_array($result);
 $invoice_currency_id = $data['currency'];
 $invoice_currency_code = $data['code'];
+
 
 
 // /**
@@ -107,7 +109,7 @@ function requery()
     // make request to endpoint.
     $data_string = json_encode($data);
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $GLOBALS['apiLink'] . 'flwv3-pug/getpaidx/api/v2/verify');
+    curl_setopt($ch, CURLOPT_URL, $GLOBALS['apiLink'] . 'flwv3-pug/getpaidx/api/xrequery');
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -253,3 +255,4 @@ function failed($data)
     die();
     exit;
 }
+
