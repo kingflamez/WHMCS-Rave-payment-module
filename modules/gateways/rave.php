@@ -36,7 +36,7 @@ function rave_config()
     $whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], "admin"));
 
 
-    $callbackUrl = $whmcsLink."modules/gateways/callback/rave_webhook.php";
+    $callbackUrl = $whmcsLink."modules/gateways/callback/rave.php";
 
     return array(
         'FriendlyName' => array(
@@ -287,7 +287,7 @@ function rave_link($params)
             $datas
         . "
         onclose: function() {
-          //  window.location = '" . $whmcsLink . "/modules/gateways/callback/rave.php?txref=" . $postfields['txref'] . "&cancelled=true';
+          window.location = '" . $whmcsLink . "/modules/gateways/callback/rave.php?txref=" . $postfields['txref'] . "&cancelled=true';
         },
           callback: function(response) {
             var flw_ref = response.tx.flwRef; // collect flwRef returned and pass to a                  server page to complete status check.
