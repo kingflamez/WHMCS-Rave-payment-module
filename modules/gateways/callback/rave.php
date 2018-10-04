@@ -25,14 +25,40 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
-$isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
-$whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
+// Receive Webhook
+
+// Retrieve the request's body
+$body = @file_get_contents("php://input");
+
+
+// retrieve the signature sent in the reques header's.
+$signature = (isset($_SERVER['HTTP_VERIF_HASH']) ? $_SERVER['HTTP_VERIF_HASH'] : '');
+// Store the same signature on your server as an env variable and check against what was sent in the headers
+$local_signature = $gatewayParams['webhookHash'];
+
+/* It is a good idea to log all events received. Add code *
+ * here to log the signature and body to db or file       */
+if ($signature== $local_signature) {
+    http_response_code(200); // PHP 5.4 or greater
+    // parse event (which is json string) as object
+    // Give value to your customer but don't give any output
+    // Remember that this is a call from rave's servers and 
+    // Your customer is not seeing the response here at all
+    $response = json_decode($body);
+    $invoiceId = explode('_', $response->txref);
+    $invoiceId = $invoiceId[0];
+    $transactionId = $response->txref;
+    $paymentAmount = $response->amount;
+    
+}
+//Webhook Received
 
 $secretKey = $gatewayParams['testSecretKey'];
 
 if ($gatewayParams['testMode'] != 'on') {
     $secretKey = $gatewayParams['secretKey'];
 }
+
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
@@ -42,12 +68,13 @@ $transactionId = $_GET["txref"];
 $paymentAmount = $_GET["a"];
 $success = false;
 
-
 $apiLink = "https://ravesandboxapi.flutterwave.com/";
 if ($gatewayParams['testMode'] != 'on') {
     $apiLink = "https://api.ravepay.co/";
 }
 
+$isSSL = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+$whmcsLink = 'http' . ($isSSL ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . substr(str_replace('/admin/', '/', $_SERVER['REQUEST_URI']), 0, strrpos($_SERVER['REQUEST_URI'], '/'));
 
 /**
  * Validate Callback Invoice ID.
@@ -74,8 +101,6 @@ $data = mysql_fetch_array($result);
 $invoice_currency_id = $data['currency'];
 $invoice_currency_code = $data['code'];
 
-
-
 // /**
 //  * Converts to the Currency set if on
 //  */
@@ -88,6 +113,8 @@ $invoice_currency_code = $data['code'];
 $money = $cash + 0;
 $requeryCount = 0;
 
+
+
 //Verify Transaction
 if (isset($_GET['txref'])) {
     return requery();
@@ -97,7 +124,6 @@ function requery()
 {
     $txref = $_GET['txref'];
     $GLOBALS['requeryCount']++;
-
 
     $data = array(
         'txref' => $txref,
@@ -109,7 +135,7 @@ function requery()
     // make request to endpoint.
     $data_string = json_encode($data);
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $GLOBALS['apiLink'] . 'flwv3-pug/getpaidx/api/xrequery');
+    curl_setopt($ch, CURLOPT_URL, $GLOBALS['apiLink'] . 'flwv3-pug/getpaidx/api/v2/verify');
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -170,7 +196,7 @@ function verifyTransaction($data)
             null,
             $GLOBALS['gatewayModuleName']
         );
-            // Add transaction to Gateway logs
+        // Add transaction to Gateway logs
         if ($gatewayParams['gatewayLogs'] == 'on') {
             $log = "Transaction ref: " . $data->txref
                 . "\r\nInvoice ID: " . $invoiceId
@@ -181,8 +207,8 @@ function verifyTransaction($data)
                 . "\r\nResponse: " . $data;
             logTransaction($GLOBALS['gatewayModuleName'], $log, "Successful");
         }
-        header("Location: " . $invoice_url);
-        exit;
+        header('Location: '.$invoice_url);
+        die();
     } else {
         return failed($data);
     }
@@ -206,53 +232,8 @@ function failed($data)
             . "\r\nResponse: " . $data;
         logTransaction($gatewayModuleName, $log, "Failed");
     }
-    $error = ($_GET['cancelled'] == true) ? "You cancelled the transaction" : "Transaction Failed";
 
-    echo '<!DOCTYPE html>
-    <html lang="">
-        <head>
-            <meta charset="utf-8">
-            <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
-            <title>Failed Transaction</title>
-    
-            <!-- Bootstrap CSS -->
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    
-            <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-            <!-- WARNING: Respond.js doesn\'t work if you view the page via file:// -->
-            <!--[if lt IE 9]>
-                <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
-                <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-            <![endif]-->
-            <style>
-            html, body{
-                font-family: \'Raleway\', sans-serif;
-            }
-            h1{
-                font-weight: bold;
-                color: #f00;
-            }
-            </style>
-        </head>
-        <body class="text-center" style="padding-top=20%;">
-            <h1>Failed Transaction</h1>
-            <p>Response Code - ' . $data->chargecode . '</p>
-            <p>Response Message - ' . $data->chargemessage . '</p>
-            <p>' . $error . '</p>
-            </br>
-            <a class="btn btn-primary" href="' . $invoice_url . '">Back to Invoice</a>
-    
-            <!-- jQuery -->
-            <script src="//code.jquery.com/jquery.js"></script>
-            <!-- Bootstrap JavaScript -->
-            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-            <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-             <script src="Hello World"></script>
-        </body>
-    </html>';
+    header('Location: '.$invoice_url);
     die();
     exit;
 }
-
