@@ -83,7 +83,7 @@ function rave_config()
             'FriendlyName' => 'Payment Method',
             'Type' => 'dropdown',
             'Options' => array(
-                'both' => 'All',
+                'all' => 'All',
                 'card' => 'Card Only',
                 'account' => 'Account Only',
                 'ussd' => 'USSD Only'
@@ -97,7 +97,8 @@ function rave_config()
             'Options' => array(
                 'NG' => 'Nigeria',
                 'GH' => 'Ghana',
-                'KE' => 'Kenya'
+                'KE' => 'Kenya',
+                'ZA' => 'South Africa'
             ),
             'Description' => 'Choose your country!',
         ),
@@ -224,7 +225,20 @@ function rave_link($params)
     $postfields['customer_phone'] = $phone;
     $postfields['country'] = $country;
     $postfields['txref'] = $invoiceId . '_' . time();
-    $postfields['payment_method'] = $paymentMethod;
+    if ($currencyCode == "NGN") {
+        $paymentMethod = "card,account,qr";
+    } elseif($currencyCode == "GHS") {
+        $paymentMethod = "card,mobilemoneyghana";
+    } elseif($currencyCode == "USD") {
+        $paymentMethod = "card,account";
+    } elseif($currencyCode == "EUR") {
+        $paymentMethod = "card";
+    } elseif($currencyCode == "KES") {
+        $paymentMethod = "card,mpesa";
+    } else {
+        $paymentMethod = "card";
+    }
+    $postfields['payment_options'] = $paymentMethod;
     $postfields['amount'] = $strippedAmount;
     $postfields['currency'] = $currencyCode;
     if ($params['paymentWay'] == 'redirection') {
